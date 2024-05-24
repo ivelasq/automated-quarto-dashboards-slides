@@ -1,0 +1,14 @@
+/*-- scss:defaults --*/
+
+$link-color: #DB766B;
+
+$presentation-title-slide-text-align: "left";
+$presentation-h1-font-size: 1.9em;
+
+.reveal h1 {
+  text-shadow: 0 0 20px #3F0000, 0 0 10px #0000FF !important;
+}
+
+.quarto-title-author-name {
+  text-shadow: 0 0 20px #3F0000, 0 0 10px #0000FF !important;
+}

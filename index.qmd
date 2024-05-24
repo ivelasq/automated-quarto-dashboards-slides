@@ -1,0 +1,759 @@
+---
+title: |
+  Automate your reporting with \
+  Quarto Dashboards and \
+  Posit Connect
+author: "Isabella Velásquez"
+affiliation: Posit
+format:
+  revealjs: 
+    theme: [default, custom.scss]
+    filters:
+      - fontawesome
+      - reveal-auto-agenda
+    auto-agenda:
+      heading: "Agenda"
+      bullets: numbered
+    transition: fade
+    background-transition: fade
+    highlight-style: tango
+    title-slide-attributes: 
+      data-background-image: images/title.jpg
+      data-background-color: "black"
+    footer: https://github.com/posit-marketing/inflation-explorer
+knitr: 
+  opts_chunk: 
+    fig.align: center
+---
+
+# Today's project
+
+## Workflow {background-color="#000" background-image="images/workflow.png"}
+
+::: notes
+Let's walk through what today's workflow will look like. First, we begin with our data, which can be in any format. In today's case, we're pulling data from an API. 
+:::
+
+## Data
+
+The **Consumer Price Index (CPI)**, released monthly by the Bureau of Labor Statistics (BLS) in the United States
+
+![](images/bls.png){fig-align='center' width=750}
+
+::: aside
+<https://www.bls.gov/cpi/>
+:::
+
+## Final dashboard
+
+![](images/dashboard-final.png)
+
+# What is Quarto? {background-color="#F5F1E3" background-image="images/section.png"}
+
+## Quarto
+
+<center>
+
+Quarto® is an
+
+::: {.fragment .grow .semi-fade-out}
+open-source
+:::
+
+::: {.fragment .grow .semi-fade-out}
+scientific and technical
+:::
+
+::: {.fragment .grow .semi-fade-out}
+publishing system
+:::
+
+::: {.fragment .grow .semi-fade-out}
+built on Pandoc.
+:::
+
+</center>
+
+## Quarto is...
+
+A tool for weaving together narrative and code to produce elegantly formatted outputs.
+
+::: incremental
+- **Consistent**, with a shared expression for core features
+- **Multilingual** and independent of computational systems
+- A format for **single-source publishing** — create Word, PDFs, HTML, etc. from one source
+:::
+
+::: notes
+Quarto has a shared expression for core features. If you used the packages from the R Markdown ecosystem, then you may have had to switch between different ways of doing the same thing. In Quarto, you have a shared core syntax that is the same across all formats. Things like tabset, code folding, cross references in the same way. Another example is that Quarto has a universal theming system based on SCSS for all HTML output where core variables defined by bslib and so it is compatible with Shiny, flexdashboard, and R Markdown themes. So, users can create very consistent and organized theming across content. [click] R Markdown is a file format for making dynamic documents with R. However, you need to call it from R to use it, and it was depedennt on knitr. If you're a Python user, it means you need to install R to use R Markdown. Quarto is a tool that you can call from the terminal or command line, and is independent from the computational systems. Quarto supports knitr, and can support others. So, you can think of Quarto as the next generation R Markdown that is fundamentally multilanguage and multiengine. [click] Finally, the goals are to create these dynamic documents that can be reproducible and automated. For single-source publishing, you often need to create all sorts of output, like things that are printed, on the web, on the mobile. The idea is to being able to make publications from one source.
+:::
+
+## Quarto engines
+
+![](images/engine.png){fig-align="center"}
+
+* **Computations**: Jupyter, knitr, ObservableJS
+* **Markdown**: Pandoc with enhancements
+* **Output**: Documents, presentations, websites, books, blogs, dashboards
+
+::: notes
+An engine is the tool that runs code. This is the basic structure that creates documents from the source, the Quarto markdown file or the QMD file. When we render a Quarto document, first, the knitr engine executes all of the code chunks and generates an intermediary markdown file that includes both the code and code output. Then that markdown file is processed by pandoc to create the finished document. Today, we'll be using the Jupyter engine since we are creating a dashboard with Python, but all the same principles apply to the knitr engine for R because Quarto is inherently multiengine.
+:::
+
+## Example Quarto document
+
+::: columns
+::: {.column width="50%"}
+
+```` {.python .pymd style="margin-top: 30px;" code-line-numbers="|3|4|6-9|10-28"}
+---
+title: "Palmer Penguins Demo"
+format: html
+jupyter: python3
+---
+
+## Meet Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+```{{python}}
+#| echo: false
+#| message: false
+import pandas as pd
+import seaborn as sns 
+from palmerpenguins import load_penguins
+sns.set_style('whitegrid')
+
+penguins = load_penguins()
+
+g = sns.lmplot(x="flipper_length_mm",
+               y="body_mass_g",
+               hue="species",
+               height=7,
+               data=penguins,
+               palette=['#FF8C00','#159090','#A034F0']);
+g.set_xlabels('Flipper Length');
+g.set_ylabels('Body Mass');
+```
+````
+:::
+
+::: {.column width="50%"}
+![](images/jupyter-plot.png)
+:::
+:::
+
+## Example Quarto document {auto-animate="true"}
+
+::: columns
+::: {.column width="50%"}
+
+```` {.python .pymd style="margin-top: 30px;" code-line-numbers="|3"}
+---
+title: "Palmer Penguins Demo"
+format: revealjs
+jupyter: python3
+---
+
+## Meet Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+```{{python}}
+#| echo: false
+#| message: false
+import pandas as pd
+import seaborn as sns 
+from palmerpenguins import load_penguins
+sns.set_style('whitegrid')
+
+penguins = load_penguins()
+
+g = sns.lmplot(x="flipper_length_mm",
+               y="body_mass_g",
+               hue="species",
+               height=7,
+               data=penguins,
+               palette=['#FF8C00','#159090','#A034F0']);
+g.set_xlabels('Flipper Length');
+g.set_ylabels('Body Mass');
+```
+````
+:::
+
+::: {.column width="50%"}
+![](images/jupyter-prez.png)
+:::
+:::
+
+# Quarto dashboards {background-color="#F5F1E3" background-image="images/section.png"}
+
+## Quarto dashboards
+
+A new output format for easily creating dashboards from notebooks
+
+![](images/dashboard-examples.png){fig-align='center' width=750}
+
+::: aside
+<https://quarto.org/docs/dashboards/examples/>
+:::
+
+## Quarto dashboards
+
+::: incremental
+
+* New as of Quarto v1.4
+* Publish groups of visualizations, tables, text together
+* Flexible and easy to specify row and column-based layouts
+* Author using any notebook editor
+* Dashboards can be deployed as static web pages (no special server required) or you can optionally integrate a backend Shiny Server for enhanced interactivity
+
+:::
+
+## Dashboard example
+
+::: columns
+::: {.column style="margin-top: 30px;"}
+```` {.python .pymd code-line-numbers="|4"}
+--- 
+title: "Development Indicators by Continent"
+author: "Gapminder Analytics Group"
+format: dashboard
+--- 
+
+```{{python}}
+import plotly.express as px
+df = px.data.gapminder()
+```
+
+## Row {height=60%}
+
+```{{python}}
+#| title: GDP and Life Expectancy 
+px.scatter(  
+  df, x="gdpPercap", y="lifeExp", 
+  animation_frame="year", animation_group="country", 
+  size="pop", color="continent", hover_name="country",
+  facet_col="continent", log_x=True, size_max=45, 
+  range_x=[100,100000], range_y=[25,90] 
+)  
+```
+
+## Row {height=40%}
+
+```{{python}}
+#| title: Population
+px.area(
+  df, x="year", y="pop", 
+  color="continent", line_group="country"
+)
+```
+
+```{{python}}
+#| title: Life Expectancy
+px.line(
+  df, x="year", y="lifeExp", 
+  color="continent", line_group="country"
+)
+```
+````
+:::
+
+::: {.column}
+![](images/gapminder.png){width="90%"}
+:::
+:::
+
+## Dashboard components
+
+1. **Navigation bar and pages** -- Icon, title, and author along with links to sub-pages (if more than one page is defined)
+
+2. **Pages, rows, columns, and tabsets** — Pages, rows and columns are defined using markdown headings
+
+3. **Cards, sidebars, and toolbars** -- Display information and inputs
+
+. . .
+
+::: {.callout-note}
+Register for the Quarto Dashboards workshop at posit::conf(2024), August 12 in Seattle! <https://pos.it/conf>
+:::
+
+## Navigation bar and pages
+
+![](images/navigation-toolbar.png)
+
+::: {style="margin-top: 0.7em;"}
+``` {.python .pymd code-line-numbers="|2,3,6,7"}
+--- 
+title: "Palmer Penguins"
+author: "Cobblepot Analytics"
+format: 
+  dashboard:
+    logo: images/penguins.png
+    nav-buttons: [linkedin, twitter, github]
+---
+
+# Bills
+
+# Flippers
+
+# Data
+```
+:::
+
+## Layout: Rows {.component-slide}
+
+::: columns
+::: {.column style="margin-top: 30px;"}
+```` {.python .pymd code-line-numbers="|6, 11"}
+---
+title: "Focal (Top)"
+format: dashboard
+---
+    
+## Row {height=70%}
+
+```{{python}}
+```
+
+## Row {height=30%}
+
+```{{python}}
+```
+
+```{{python}}
+```
+````
+:::
+
+::: {.column .fragment}
+![](images/chart-focal-top.png){width="90%"}
+:::
+:::
+
+## Layout: Columns {.component-slide}
+
+::: columns
+::: {.column style="margin-top: 30px;"}
+```` {.python .pymd code-line-numbers="|5"}
+---
+title: "Focal (Top)"
+format: 
+  dashboard:
+    orientation: columns
+---
+    
+## Column {width=60%}
+
+```{{python}}
+```
+
+## Column {width=40%}
+
+```{{python}}
+```
+
+```{{python}}
+```
+````
+:::
+
+::: {.column .fragment}
+![](images/chart-focal-left.png)
+:::
+:::
+
+## Tabsets {.component-slide}
+
+::: columns
+::: {.column style="margin-top: 30px;"}
+```` {.python .pymd code-line-numbers="|11"}
+---
+title: "Palmer Penguins"
+format: dashboard
+---
+    
+## Row
+
+```{{python}}
+```
+
+## Row {.tabset}
+
+```{{python}}
+#| title: Chart 2
+```
+
+```{{python}}
+#| title: Chart 3
+```
+````
+:::
+
+::: {.column .fragment}
+![](images/chart-tabset-row.png){width="87%"}
+:::
+:::
+
+## Sidebars
+
+::: columns
+::: column
+```` {.python .pymd style="margin-top: 30px;" code-line-numbers="|8"}
+---
+title: "Sidebar"
+format: dashboard
+---
+    
+# Page 1
+
+## {.sidebar}
+
+```{{python}}
+```
+
+## Column 
+
+```{{python}}
+```
+
+```{{python}}
+```
+````
+:::
+
+::: {.column .fragment}
+![](images/chart-input-sidebar.png)
+:::
+:::
+
+## Cards
+
+```` {.python .pymd style="margin-top: 30px;"}
+---
+title: "Cards"
+format: dashboard
+---
+    
+## Column {width=40%}
+
+```{{python}}
+```
+
+```{{python}}
+```
+````
+
+## Cards
+
+```` {.python .pymd style="margin-top: 30px;"}
+```{{python}}
+#| title: "World Map"
+#| padding: 0px
+from ipyleaflet import Map, basemaps, basemap_to_tiles
+Map(basemap=basemap_to_tiles(basemaps.OpenStreetMap.Mapnik),
+    center=(48.204793, 350.121558), zoom=2)
+```
+````
+
+. . .
+
+![](images/leaflet-card-title-padding.png){fig-align="center" width=600}
+
+## Data display in cards
+
+::: incremental
+* **Plots** --  Both interactive JavaScript-based plots (e.g. Altair and Plotly) and standard raster based plots (e.g. Matplotlib or ggplot2) are supported
+* **Tables** -- Include tables as a simple tabular display or an interactive widget that includes sorting and filtering
+* **Value boxes** -- Prominently display simple values within a dashboard
+* **Text** --  Include arbitrary markdown content anywhere within a dashboard
+:::
+
+## Data display in cards
+
+![](images/data-display.png){fig-align="center" fig-width=600}
+
+## Theming
+
+Quarto includes 25 themes from the Bootswatch project:
+
+```` {.yaml code-line-numbers="|3"}
+format:
+  dashboard:
+    theme: united
+````
+
+. . .
+
+![](images/nfl-injuries-dashboard.png){fig-align="center" width=400}
+
+## Theming
+
+Quarto allows for extensive customization of themes using Sass:
+
+```` {.yaml code-line-numbers="|6"}
+title: "Stock Explorer"
+author: "Ty Coon"
+logo: logo.png
+format: 
+  dashboard:
+    theme: [yeti, custom.scss]
+````
+
+. . .
+
+![](images/stock-explorer-dashboard.png){fig-align="center" width=400}
+
+## Today's dashboard
+
+```` {.python .pymd style="margin-top: 30px;" code-line-numbers="|3-4|6-8|12|43|45-50|72,74|76-82|104-110|"}
+---
+title: 'Inflation explorer: showing the change in price for various goods and services'
+format: 
+  dashboard:
+    logo: images/logo.png
+    nav-buttons:
+      - icon: github
+        href: https://github.com/posit-marketing
+---
+
+```{{python}}
+#| include: false
+import markdown
+import pins
+from pins import board_connect
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+import altair as alt
+from dotenv import load_dotenv
+load_dotenv()
+import os
+from plotnine import ggplot, aes, geom_bar, scale_fill_manual, labs, theme_minimal, theme, element_text
+from IPython.display import display, Markdown, Latex
+
+connect_server = connect_server = os.environ.get('CONNECT_SERVER')
+connect_api_key = os.environ.get('CONNECT_API_KEY')
+
+board = board_connect(server_url=connect_server, api_key=connect_api_key)
+df = board.pin_read('isabella.velasquez/bls-cpi-data')
+
+pio.templates.default = 'plotly_white'
+
+# Value for last updated date
+df['Year-Month'] = pd.to_datetime(df['Year-Month'])
+last_updated_date = df['Year-Month'].max().strftime('%B  %Y')
+
+cpi_df = df[df['Category'] == 'CUUR0000SA0']
+latest_cpi_value = cpi_df['value'].iloc[-1]
+latest_cpi_percent_change = cpi_df['Percent_Change_from_Previous_Month'].iloc[-1]
+```
+
+## Row {height=20%}
+
+```{{python}}
+#| content: valuebox
+#| title: 'Last updated'
+#| color: #fff
+last_updated_date
+```
+
+```{{python}}
+#| content: valuebox
+#| title: 'Consumer Price Index (CPI)'
+#| icon: basket
+#| color: primary
+dict(
+  value = latest_cpi_value.round(2)
+)
+```
+
+```{{python}}
+#| content: valuebox
+#| title: 'Increase from previous month'
+#| icon: percent
+#| color: primary
+dict(
+  value = latest_cpi_percent_change.round(2)
+)
+```
+
+## Row {height=80%}
+
+### Column {width=20%}
+
+The **Consumer Price Index (CPI)** is a measure of the average change over time in the prices paid by urban consumers for a market basket of consumer goods and services. 
+
+Indexes are available for the U.S. and various geographic areas. Average price data for select utility, automotive fuel, and food items are also available.
+
+Source: 
+
+Bureau of Labor Statistics
+
+### Column {.tabset width=80%}
+
+```{{python}}
+#| label: pct-change-jan-2018-code
+#| include: false
+df = df.sort_values(by=['Category_Label', 'Year-Month'], ascending=[False, False])
+
+fig = px.line(df, x='Year-Month', y='Percent_Change_from_January_2018', color='Category_Label', hover_name='Category_Label')
+
+for d in fig['data']:
+    if d['name'] == 'All groups CPI':
+        d['line']['color'] = 'orange'
+        d['legendgroup'] = 1 
+    else:
+        d['line']['color'] = 'lightgrey'
+
+fig.update_xaxes(title_text='')
+fig.update_yaxes(title_text='')
+```
+
+```{{python}}
+#| label: pct-change-jan-2018-plot
+#| title: 'Percentage change since Jan 2018'
+display(Markdown('Use this inflation data explorer to see which goods and services are getting cheaper or more expensive in the U.S.'))
+
+fig.show()
+```
+
+```{{python}}
+#| label: pct-change-monthly-code
+#| include: false
+latest_month_data = df[df['Year-Month'] == df['Year-Month'].max()]
+
+latest_month_data_sorted = latest_month_data.sort_values(by='Percent_Change_from_Previous_Month', ascending=False)
+
+top_six_categories = latest_month_data_sorted.head(6)
+
+fig = px.bar(top_six_categories, x='Category_Label', y='Percent_Change_from_Previous_Month', 
+             title='',
+             color='Category_Label',
+             color_discrete_sequence=px.colors.sequential.Reds[::-1])
+
+fig.update_layout(xaxis_title='', yaxis_title='Percent Change',
+                  yaxis_tickformat='%.1f%%')
+```
+
+```{{python}}
+#| label: pct-change-monthly-plot
+#| title: "Last month's top 6"
+display(Markdown('Percentage change in CPI by category for the latest month, top six categories'))
+fig.show()
+```
+
+```{{python}}
+#| title: 'Monthly percentage change'
+display(Markdown('Use this inflation data explorer to see which goods and services are getting cheaper or more expensive in the U.S.'))
+```
+````
+
+## Publishing dashboards 
+
+::: columns
+::: {.column width="60%"}
+### Server
+::: {.column width="40%"}
+#### Cloud
+
+-   [shinyapps.io](https://shiny.posit.co/py/docs/deploy.html#deploy-to-shinyapps.io-cloud-hosting)
+-   [Hugging Face](https://huggingface.co/docs/hub/spaces-sdks-docker-shiny)
+-   [Roll your own](https://shiny.posit.co/py/docs/deploy.html#other-hosting-options)
+:::
+
+::: {.column width="50%"}
+#### On-Prem
+
+-   [Shiny Server](https://shiny.posit.co/py/docs/deploy.html#deploy-to-shiny-server-open-source) (open source)
+-   [Posit Connect](https://shiny.posit.co/py/docs/deploy.html#deploy-to-posit-connect-commercial) (commercial)
+-   [Roll your own](https://shiny.posit.co/py/docs/deploy.html#other-hosting-options)
+:::
+:::
+::: {.column width="40%"}
+### Serverless
+
+Using [Pyodide](https://pyodide.org/)
+
+[[Example](https://wch.github.io/retirement-simulation-dashboard/)]
+:::
+:::
+
+# Publishing on Posit Connect {background-color="#F5F1E3" background-image="images/section.png"}
+
+## Posit Connect
+
+::: columns
+::: {.column width="50%"}
+
+Posit Connect is a publishing platform that makes the delivery of data science content fast, approachable, and secure.
+
+:::
+
+::: {.column width="50%"}
+
+![](images/jupyterwidgets.gif)
+
+:::
+:::
+
+## Posit Connect
+
+::: incremental
+Posit Connect accepts publishing Shiny, Dash, Streamlit, Bokeh, R Markdown, Jupyter Notebook, FastAPI, Flask, Plumber...
+
+:::
+
+. . .
+
+::: columns
+::: {.column width="40%"}
+
+![](images/jupyter-plot.png)
+:::
+
+::: {.column width="60%"}
+and Quarto documents!
+:::
+:::
+
+## Publishing a Quarto dashboard from VS Code in Posit Connect
+
+* The rsconnect-python package provides a CLI (command-line interface) for interacting with and deploying to Posit Connect
+* The `rsconnect deploy` command deploys content to Posit Connect
+
+```bash
+rsconnect deploy quarto
+```
+
+## Scheduling on Posit Connect
+
+::: columns
+::: {.column width="50%"}
+Reports that are published with source code can be re-executed by Posit Connect.
+
+* Re-executing content can either be done manually or on a schedule
+* The Schedule Type and related fields determine how frequently the document is executed by Connect
+:::
+
+::: {.column width="50%"}
+![](images/r-markdown-schedule-options.png){fig-align="center" width=250}
+:::
+:::
+
+## Automatic emailing on Posit Connect
+
+Emails can delivered after re-execution to
+
+* all collaborators
+* all viewers
+* server broadcast (may be unavailable in your configuration)
+* named additional recipients
+
+# Demo {background-color="#F5F1E3" background-image="images/section.png"}
+
+## Acknowledgements
+
+* Quarto: <https://quarto.org/>
+* Quarto dashboard gallery: <https://quarto.org/docs/dashboards/examples/>
+* [Dashing through the snow (or Sharing your data) in a Quarto Dashboard](https://mine.quarto.pub/quarto-dashboards-pydata/#/title-slide) by Mine Çetinkaya-Rundel
