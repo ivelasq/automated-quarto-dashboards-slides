@@ -2,3 +2,4 @@
 *.html
 /rsconnect/
 /index_files/
+*.env

@@ -21,9 +21,6 @@ format:
       data-background-image: images/title.jpg
       data-background-color: "black"
     footer: https://github.com/posit-marketing/inflation-explorer
-knitr: 
-  opts_chunk: 
-    fig.align: center
 ---
 
 # Today's project
